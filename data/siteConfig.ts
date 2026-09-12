@@ -33,7 +33,7 @@ export const siteConfig = {
     line1: "Your home.",
     line2: "Our expertise.",
     sub: "Professional, reliable care for a cleaner, safer, more comfortable home.",
-    video: "/assets/hero.mp4",
+    video: "/assets/hero.mp4?v=h264",
     poster: "/assets/hero.jpg",
   },
 

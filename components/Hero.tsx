@@ -5,6 +5,12 @@ import { siteConfig } from "@/data/siteConfig";
 import { useQuote } from "@/lib/quote-context";
 import "@/app/hero.css";
 
+/**
+ * Mobile scrub notes:
+ * - Source must be H.264 + faststart (moov at front) or iOS/Android can't seek while buffering.
+ * - First touch/scroll must unlock the video with a muted play() → pause().
+ * - Prefer blob URL when possible so seeking works even before full CDN buffer.
+ */
 export default function Hero() {
   const { setOpen } = useQuote();
   const pinRef = useRef<HTMLElement>(null);
@@ -21,9 +27,10 @@ export default function Hero() {
     const media = mediaRef.current;
     const video = videoRef.current;
     const fallback = fallbackRef.current;
-    if (!pin || !media) return;
+    if (!pin || !media || !video) return;
 
     let hasVideo = false;
+    let unlocked = false;
     let seeking = false;
     let seekUnlock: number | undefined;
     let targetTime = 0;
@@ -34,7 +41,9 @@ export default function Hero() {
     let blobUrl: string | null = null;
     const hero = siteConfig.hero;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    const coarse =
+      window.matchMedia("(pointer: coarse)").matches ||
+      /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     if (hero.poster && fallback) {
       fallback.classList.add("has-poster");
@@ -77,37 +86,58 @@ export default function Hero() {
       }
       if (hintRef.current) hintRef.current.style.opacity = String(1 - endIn);
 
-      const inHero = scrolled > 1 && scrolled < total - 1;
-      document.documentElement.classList.toggle("hero-scrolling", inHero);
+      document.documentElement.classList.toggle(
+        "hero-scrolling",
+        scrolled > 1 && scrolled < total - 1
+      );
     };
 
-    const unlockSeek = () => {
+    const unlockSeekFlag = () => {
       seeking = false;
       if (seekUnlock) window.clearTimeout(seekUnlock);
       seekUnlock = undefined;
     };
 
-    const syncVideo = () => {
-      if (!hasVideo || !video || video.readyState < 2) return;
-      const duration = video.duration;
-      if (!Number.isFinite(duration) || duration <= 0) return;
+    const unlockPlayback = async () => {
+      if (unlocked || !video) return;
+      unlocked = true;
+      try {
+        video.muted = true;
+        video.defaultMuted = true;
+        video.playsInline = true;
+        await video.play();
+        video.pause();
+      } catch {
+        unlocked = false;
+      }
+    };
 
+    const canSeek = () => {
+      if (!video) return false;
+      if (video.readyState < 1) return false;
+      if (!Number.isFinite(video.duration) || video.duration <= 0) return false;
+      // Seekable range grows as bytes arrive — blob URL usually has full range immediately
+      if (video.seekable.length > 0 && video.seekable.end(0) > 0.2) return true;
+      return video.readyState >= 3;
+    };
+
+    const syncVideo = () => {
+      if (!hasVideo || !video || !canSeek()) return;
+      const duration = video.duration;
       targetTime = Math.min(displayProgress * duration * 0.985, Math.max(duration - 0.04, 0));
-      // Desktop: buttery trail. Mobile: closer to finger so swipe scrub feels live.
-      const timeEase = reduceMotion ? 1 : coarse ? 0.22 : 0.08;
+      const timeEase = reduceMotion ? 1 : coarse ? 0.35 : 0.08;
       displayTime = lerp(displayTime, targetTime, timeEase);
 
       const delta = Math.abs(video.currentTime - displayTime);
-      const threshold = coarse ? 0.02 : 0.035;
+      const threshold = coarse ? 0.016 : 0.035;
       if (!seeking && delta > threshold) {
         seeking = true;
         if (seekUnlock) window.clearTimeout(seekUnlock);
-        // Never leave seeking stuck if seeked doesn't fire (common on mobile)
-        seekUnlock = window.setTimeout(unlockSeek, coarse ? 90 : 140);
+        seekUnlock = window.setTimeout(unlockSeekFlag, coarse ? 70 : 140);
         try {
           video.currentTime = displayTime;
         } catch {
-          unlockSeek();
+          unlockSeekFlag();
         }
       }
     };
@@ -115,103 +145,115 @@ export default function Hero() {
     const tick = () => {
       const { scrolled, total, progress } = readProgress();
       targetProgress = progress;
-
-      // Smooth mouse wheel / trackpad; snappier on touch so mobile scrub tracks swipe
-      const ease = reduceMotion ? 1 : coarse ? 0.28 : 0.075;
+      const ease = reduceMotion ? 1 : coarse ? 0.32 : 0.075;
       displayProgress = lerp(displayProgress, targetProgress, ease);
       applyVisuals(displayProgress, scrolled, total);
       syncVideo();
-
       rafId = requestAnimationFrame(tick);
     };
 
-    const onSeeked = () => unlockSeek();
-
-    const onError = () => {
-      hasVideo = false;
-      media.classList.remove("has-video");
-    };
-
     const arm = () => {
-      if (!video) return;
       const duration = video.duration;
       hasVideo = Number.isFinite(duration) && duration > 0;
       if (!hasVideo) return;
       media.classList.add("has-video");
-      // Extra scroll runway on phones so a finger swipe can play the full clip
-      const vh = coarse ? 240 + duration * 22 : 120 + duration * 18;
-      pin.style.height = `${Math.max(coarse ? 260 : 190, vh)}vh`;
-      void video.play().then(() => video.pause()).catch(() => undefined);
+      const vh = coarse ? 260 + duration * 24 : 120 + duration * 18;
+      pin.style.height = `${Math.max(coarse ? 280 : 190, vh)}vh`;
+      void unlockPlayback();
       const { progress } = readProgress();
       targetProgress = progress;
       displayProgress = progress;
-      targetTime = Math.min(progress * duration * 0.985, 0);
       displayTime = video.currentTime || 0;
     };
 
-    if (video && hero.video) {
-      video.muted = true;
-      video.defaultMuted = true;
-      video.playsInline = true;
-      video.setAttribute("playsinline", "");
-      video.setAttribute("webkit-playsinline", "");
-      video.setAttribute("muted", "");
-      video.preload = "auto";
-      if (hero.poster) video.poster = hero.poster;
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
+    video.setAttribute("x5-playsinline", "");
+    video.setAttribute("muted", "");
+    video.preload = "auto";
+    if (hero.poster) video.poster = hero.poster;
 
-      video.addEventListener("loadedmetadata", arm);
-      video.addEventListener("canplay", arm, { once: true });
-      video.addEventListener("seeked", onSeeked);
-      video.addEventListener("error", onError);
+    video.addEventListener("loadedmetadata", arm);
+    video.addEventListener("loadeddata", arm);
+    video.addEventListener("canplay", arm);
+    video.addEventListener("seeked", unlockSeekFlag);
+    video.addEventListener("error", () => {
+      hasVideo = false;
+      media.classList.remove("has-video");
+    });
 
-      const attach = (url: string) => {
-        video.src = url;
-        video.load();
-      };
+    const attach = (url: string) => {
+      if (video.getAttribute("src") === url) return;
+      video.src = url;
+      video.load();
+    };
 
-      // Blob unlocks reliable seeking on mobile Safari / Chrome
-      fetch(hero.video)
-        .then((res) => {
-          if (!res.ok) throw new Error("hero video missing");
-          return res.blob();
-        })
-        .then((blob) => {
-          blobUrl = URL.createObjectURL(blob);
-          attach(blobUrl);
-        })
-        .catch(() => attach(hero.video));
-    }
+    // Direct H.264+faststart first (works on Vercel CDN with range requests)
+    attach(hero.video);
+
+    // Blob backup: full file in memory = reliable scrub on flaky mobile networks
+    const controller = new AbortController();
+    fetch(hero.video, { signal: controller.signal, cache: "force-cache" })
+      .then((res) => {
+        if (!res.ok) throw new Error("hero video missing");
+        return res.blob();
+      })
+      .then((blob) => {
+        if (!blob.type.includes("mp4") && blob.size < 1000) return;
+        blobUrl = URL.createObjectURL(blob);
+        const keepTime = video.currentTime || 0;
+        attach(blobUrl);
+        const restore = () => {
+          if (keepTime > 0.05) {
+            try {
+              video.currentTime = keepTime;
+            } catch {
+              /* ignore */
+            }
+          }
+          arm();
+        };
+        video.addEventListener("loadedmetadata", restore, { once: true });
+      })
+      .catch(() => {
+        /* direct src remains */
+      });
 
     const bump = () => {
       const { progress } = readProgress();
       targetProgress = progress;
+      void unlockPlayback();
     };
 
     window.addEventListener("scroll", bump, { passive: true });
-    window.addEventListener("touchmove", bump, { passive: true });
     window.addEventListener("touchstart", bump, { passive: true });
+    window.addEventListener("touchmove", bump, { passive: true });
     window.addEventListener("wheel", bump, { passive: true });
-    window.visualViewport?.addEventListener("scroll", bump, { passive: true } as AddEventListenerOptions);
+    window.visualViewport?.addEventListener("scroll", bump, {
+      passive: true,
+    } as AddEventListenerOptions);
     window.addEventListener("resize", bump);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") void unlockPlayback();
+    });
 
     rafId = requestAnimationFrame(tick);
 
     return () => {
       cancelAnimationFrame(rafId);
+      controller.abort();
       if (seekUnlock) window.clearTimeout(seekUnlock);
       document.documentElement.classList.remove("hero-scrolling");
       window.removeEventListener("scroll", bump);
-      window.removeEventListener("touchmove", bump);
       window.removeEventListener("touchstart", bump);
+      window.removeEventListener("touchmove", bump);
       window.removeEventListener("wheel", bump);
       window.visualViewport?.removeEventListener("scroll", bump);
       window.removeEventListener("resize", bump);
       if (blobUrl) URL.revokeObjectURL(blobUrl);
-      if (video) {
-        video.removeEventListener("loadedmetadata", arm);
-        video.removeEventListener("seeked", onSeeked);
-        video.removeEventListener("error", onError);
-      }
     };
   }, []);
 
@@ -227,6 +269,7 @@ export default function Hero() {
             muted
             playsInline
             preload="auto"
+            poster={hero.poster || undefined}
           />
           <div className="hero-fallback" ref={fallbackRef} aria-hidden="true">
             <div className="hero-orb hero-orb-a" />
