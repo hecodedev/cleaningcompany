@@ -5,7 +5,7 @@ export default function Footer() {
     <footer className="border-t border-white/10 bg-[#060606] px-5 pt-16 pb-8 md:px-8">
       <div className="mx-auto grid max-w-[1120px] gap-10 md:grid-cols-4">
         <div>
-          <a href="#top" className="font-display mb-3 inline-flex items-center gap-2.5 font-bold capitalize">
+          <a href="#top" className="font-display mb-3 inline-flex items-center gap-2.5 font-bold">
             <img src={siteConfig.logo} alt="" className="h-9 w-9" />
             {siteConfig.companyName}
           </a>
@@ -48,7 +48,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="mx-auto mt-12 flex max-w-[1120px] flex-col justify-between gap-3 border-t border-white/10 pt-5 text-sm text-white/40 md:flex-row">
-        <p>© {new Date().getFullYear()} <span className="capitalize">{siteConfig.companyName}</span>. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} {siteConfig.companyName}. All rights reserved.</p>
         <p className="flex gap-4">
           <a href="/privacy">Privacy Policy</a>
           <a href="/terms">Terms & Conditions</a>

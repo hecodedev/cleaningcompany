@@ -36,9 +36,11 @@ export default function Hero() {
 
     if (hero.poster && fallback) {
       fallback.classList.add("has-poster");
-      fallback.style.backgroundImage = `linear-gradient(180deg, rgba(8,8,8,.18), rgba(8,8,8,.42)), url("${hero.poster}")`;
+      fallback.style.backgroundColor = "#050505";
+      fallback.style.backgroundImage = `url("${hero.poster}")`;
       fallback.style.backgroundSize = "cover";
-      fallback.style.backgroundPosition = "center";
+      fallback.style.backgroundPosition = "center 78%";
+      fallback.style.backgroundRepeat = "no-repeat";
     }
 
     const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
@@ -53,20 +55,21 @@ export default function Hero() {
     };
 
     const applyVisuals = (progress: number, scrolled: number, total: number) => {
-      media.style.transform = `scale(${1 + progress * 0.1}) translate3d(0, ${progress * 1.5}%, 0)`;
-      if (sheenRef.current) sheenRef.current.style.transform = `translate3d(${progress * 14}%, 0, 0)`;
+      // Keep framing stable — no scale zoom (that cropped the video on export)
+      media.style.transform = "none";
+      if (sheenRef.current) sheenRef.current.style.transform = `translate3d(${progress * 10}%, 0, 0)`;
 
-      const introOut = smoothstep(clamp01(scrolled / 360));
-      const endIn = smoothstep(clamp01((scrolled - (total - 160)) / 160));
+      const introOut = smoothstep(clamp01(scrolled / 380));
+      const endIn = smoothstep(clamp01((scrolled - (total - 180)) / 180));
 
       if (introRef.current) {
         introRef.current.style.opacity = String(1 - introOut);
-        introRef.current.style.transform = `translate3d(0, ${introOut * -28}px, 0)`;
+        introRef.current.style.transform = `translate3d(0, ${introOut * -24}px, 0)`;
         introRef.current.style.pointerEvents = introOut > 0.8 ? "none" : "auto";
       }
       if (endRef.current) {
         endRef.current.style.opacity = String(endIn);
-        endRef.current.style.transform = `translate3d(0, ${(1 - endIn) * 14}px, 0)`;
+        endRef.current.style.transform = `translate3d(0, ${(1 - endIn) * 12}px, 0)`;
         endRef.current.style.pointerEvents = endIn > 0.55 ? "auto" : "none";
       }
       if (hintRef.current) hintRef.current.style.opacity = String(1 - endIn);
@@ -79,14 +82,15 @@ export default function Hero() {
       const { scrolled, total, progress } = readProgress();
       targetProgress = progress;
 
-      const ease = reduceMotion ? 1 : 0.08;
+      // Low lerp = buttery scrub that trails the wheel instead of jumping
+      const ease = reduceMotion ? 1 : 0.038;
       displayProgress = lerp(displayProgress, targetProgress, ease);
       applyVisuals(displayProgress, scrolled, total);
 
       if (hasVideo && video && video.readyState >= 2) {
         const duration = video.duration;
         targetTime = Math.min(displayProgress * duration * 0.985, Math.max(duration - 0.04, 0));
-        displayTime = lerp(displayTime, targetTime, reduceMotion ? 1 : 0.12);
+        displayTime = lerp(displayTime, targetTime, reduceMotion ? 1 : 0.045);
 
         const delta = Math.abs(video.currentTime - displayTime);
         if (!seeking && delta > 0.035) {

@@ -10,7 +10,7 @@ export default function Logo({ className = "" }: { className?: string }) {
           <circle cx="16.5" cy="6" r="1.2" fill="currentColor" stroke="none" />
         </svg>
       </span>
-      <span className="capitalize">{siteConfig.companyName}</span>
+      <span>{siteConfig.companyName}</span>
     </a>
   );
 }

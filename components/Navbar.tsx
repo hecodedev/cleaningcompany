@@ -31,9 +31,9 @@ export default function Navbar() {
             : "border-transparent bg-transparent"
         }`}
       >
-        <a href="#top" className="font-display inline-flex items-center gap-2.5 text-[15px] font-bold tracking-tight capitalize md:text-[17px]">
+        <a href="#top" className="font-display inline-flex items-center gap-2.5 text-[15px] font-bold tracking-tight md:text-[17px]">
           <img src={siteConfig.logo} alt="" className="h-9 w-9 shrink-0" />
-          <span className="max-w-[9.5rem] truncate sm:max-w-none">{siteConfig.companyName}</span>
+          <span className="max-w-[11rem] truncate sm:max-w-none">{siteConfig.companyName}</span>
         </a>
 
         <nav className="absolute left-1/2 hidden -translate-x-1/2 gap-7 text-[15px] text-white/70 md:flex" aria-label="Primary">

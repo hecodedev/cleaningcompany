@@ -157,7 +157,7 @@ export const siteConfig = {
     text: "We proudly serve homes and businesses throughout the local area, bringing professional cleaning services to your doorstep.",
     /** Google Maps embed centered on Sydney — swap this URL when rebranding city */
     mapEmbed:
-      "https://www.google.com/maps?q=Sydney+NSW+Australia&hl=en&z=11&output=embed",
+      "https://maps.google.com/maps?q=Sydney%2C%20NSW%2C%20Australia&z=11&hl=en&output=embed",
     areas: [
       { name: "Sydney" },
       { name: "Bondi" },
