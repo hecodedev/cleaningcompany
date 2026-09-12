@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YourLogo — Premium home services</title>
+    <meta name="description" content="Professional home services you can rely on." />
+    <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="nav" data-nav>
+      <a class="nav-brand" href="#top" data-brand>
+        <img src="assets/logo.svg" alt="" data-logo />
+        <span data-brand-name>YourLogo</span>
+      </a>
+
+      <nav class="nav-links" data-nav-links aria-label="Primary">
+        <a href="#services">Services</a>
+        <a href="#about">About</a>
+        <a href="#reviews">Reviews</a>
+        <a href="#contact">Contact</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a class="nav-phone" data-phone-link href="tel:+61200000000">
+          <span data-phone>+61 2 0000 0000</span>
+        </a>
+        <button class="btn btn-accent" type="button" data-open-quote>Get a free quote</button>
+        <button class="nav-burger" type="button" data-menu-toggle aria-label="Open menu">
+          <span></span><span></span>
+        </button>
+      </div>
+    </header>
+
+    <div class="mobile-menu" data-mobile-menu hidden>
+      <a href="#services">Services</a>
+      <a href="#about">About</a>
+      <a href="#reviews">Reviews</a>
+      <a href="#areas">Service areas</a>
+      <a href="#contact">Contact</a>
+      <button class="btn btn-accent" type="button" data-open-quote>Get a free quote</button>
+    </div>
+
+    <main id="top">
+      <section class="hero-pin" data-hero-pin>
+        <div class="hero-sticky">
+          <div class="hero-media" data-hero-media>
+            <video class="hero-video" data-hero-video muted playsinline preload="auto"></video>
+            <div class="hero-fallback" data-hero-fallback aria-hidden="true">
+              <div class="hero-orb hero-orb-a"></div>
+              <div class="hero-orb hero-orb-b"></div>
+              <div class="hero-orb hero-orb-c"></div>
+              <div class="hero-frame"></div>
+              <div class="hero-sheen" data-hero-sheen></div>
+            </div>
+            <div class="hero-vignette"></div>
+          </div>
+
+          <div class="hero-copy">
+            <div class="hero-intro" data-hero-intro>
+              <p class="eyebrow" data-hero-eyebrow>Premium home services</p>
+              <h1>
+                <span data-hero-line1>Your home.</span>
+                <span class="hero-line-accent" data-hero-line2>Our expertise.</span>
+              </h1>
+            </div>
+            <div class="hero-end" data-hero-end>
+              <p class="hero-sub" data-hero-sub>
+                Professional, reliable care for a cleaner, safer, more comfortable home.
+              </p>
+              <div class="hero-cta">
+                <button class="btn btn-accent btn-lg" type="button" data-open-quote>Get a free quote</button>
+                <a class="btn btn-ghost btn-lg" data-phone-link href="tel:+61200000000">
+                  <span data-phone>+61 2 0000 0000</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="scroll-hint" aria-hidden="true">
+            <span>Scroll</span>
+            <i></i>
+          </div>
+        </div>
+      </section>
+
+      <section class="section services" id="services">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <p class="eyebrow"><span data-section-num>01</span> — What we do</p>
+            <h2>Complete home services under one roof</h2>
+            <p class="lede">
+              From a weekly clean to a one-off repair, we keep
+              <span data-city>Sydney</span> homes looking their best.
+            </p>
+          </div>
+          <div class="service-grid" data-services></div>
+        </div>
+      </section>
+
+      <section class="section about" id="about">
+        <div class="wrap">
+          <div class="about-grid">
+            <div class="reveal">
+              <p class="eyebrow">Why choose us</p>
+              <h2>Trusted. Local. Professional.</h2>
+              <p class="lede">
+                A team of experienced specialists committed to delivering a high-quality
+                finish — on time, and without the runaround.
+              </p>
+            </div>
+            <div class="stat-row" data-stats></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section process" id="process">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <p class="eyebrow">How it works</p>
+            <h2>Getting your service is simple</h2>
+          </div>
+          <ol class="process-row" data-process></ol>
+        </div>
+      </section>
+
+      <section class="section reviews" id="reviews">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <p class="eyebrow">Testimonials</p>
+            <h2>What our customers are saying</h2>
+          </div>
+          <div class="review-grid" data-reviews></div>
+        </div>
+      </section>
+
+      <section class="section areas" id="areas">
+        <div class="wrap areas-grid">
+          <div class="reveal">
+            <p class="eyebrow">Service areas</p>
+            <h2>We proudly serve <span data-city>Sydney</span> and surrounding suburbs</h2>
+            <p class="lede">Tell us your suburb — if we cover it, we’ll confirm in the quote.</p>
+            <ul class="area-pills" data-areas></ul>
+            <button class="btn btn-accent" type="button" data-open-quote>Check if we serve your area</button>
+          </div>
+          <div class="area-map reveal" aria-hidden="true">
+            <svg class="map-svg" viewBox="0 0 420 360" fill="none">
+              <path
+                class="map-land"
+                d="M48 92c38-46 92-62 148-54 46 6 78 28 118 22 36-6 62 18 74 52 14 40 8 78-10 118-16 36-28 78-70 96-48 20-96 8-140-6-50-16-96-10-128-48-34-40-28-92 8-180z"
+              />
+              <g class="map-pins" data-map-pins></g>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <section class="section faq" id="faq">
+        <div class="wrap faq-wrap">
+          <div class="section-head reveal">
+            <p class="eyebrow">FAQ</p>
+            <h2>Frequently asked questions</h2>
+          </div>
+          <div class="faq-list" data-faqs></div>
+        </div>
+      </section>
+
+      <section class="cta-band" id="contact">
+        <div class="cta-glow" aria-hidden="true"></div>
+        <div class="wrap cta-inner reveal">
+          <p class="eyebrow">Ready to get started?</p>
+          <h2>Let’s make your home look its best.</h2>
+          <p class="lede">Contact us for a free quote — no obligation, no pressure.</p>
+          <div class="hero-cta">
+            <button class="btn btn-accent btn-lg" type="button" data-open-quote>Request a quote</button>
+            <a class="btn btn-ghost btn-lg" data-phone-link href="tel:+61200000000">
+              Call <span data-phone>+61 2 0000 0000</span>
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap footer-grid">
+        <div>
+          <a class="nav-brand" href="#top" data-brand>
+            <img src="assets/logo.svg" alt="" data-logo />
+            <span data-brand-name>YourLogo</span>
+          </a>
+          <p class="footer-blurb">
+            Professional home services across <span data-city>Sydney</span>.
+          </p>
+        </div>
+        <div>
+          <p class="footer-label">Quick links</p>
+          <a href="#services">Services</a>
+          <a href="#about">About</a>
+          <a href="#reviews">Reviews</a>
+          <a href="#contact">Contact</a>
+        </div>
+        <div>
+          <p class="footer-label">Services</p>
+          <div data-footer-services></div>
+        </div>
+        <div>
+          <p class="footer-label">Contact</p>
+          <a data-phone-link href="tel:+61200000000"><span data-phone>+61 2 0000 0000</span></a>
+          <a data-email-link href="mailto:hello@yourlogo.com"><span data-email>hello@yourlogo.com</span></a>
+          <p data-hours>Mon–Sat, 7:00am – 6:00pm</p>
+          <p data-address>Sydney, NSW</p>
+        </div>
+      </div>
+      <div class="wrap footer-base">
+        <p>© <span data-year></span> <span data-brand-name>YourLogo</span>. All rights reserved.</p>
+        <p>Template — swap logo, name, colors, services, phone and city in <code>js/config.js</code>.</p>
+      </div>
+    </footer>
+
+    <div class="mobile-bar" data-mobile-bar>
+      <a class="btn btn-ghost" data-phone-link href="tel:+61200000000">Call</a>
+      <button class="btn btn-accent" type="button" data-open-quote>Get a quote</button>
+    </div>
+
+    <div class="modal" data-modal hidden>
+      <div class="modal-backdrop" data-close-quote></div>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="quote-title">
+        <button class="modal-close" type="button" data-close-quote aria-label="Close">×</button>
+        <p class="eyebrow">Free quote</p>
+        <h2 id="quote-title">Tell us what you need</h2>
+        <p class="lede">We’ll get back to you quickly with a clear price.</p>
+        <form class="quote-form" data-quote-form>
+          <label>
+            <span>Full name</span>
+            <input name="name" type="text" required autocomplete="name" />
+          </label>
+          <label>
+            <span>Phone</span>
+            <input name="phone" type="tel" required autocomplete="tel" />
+          </label>
+          <label>
+            <span>Email</span>
+            <input name="email" type="email" autocomplete="email" />
+          </label>
+          <label>
+            <span>Service</span>
+            <select name="service" data-service-select required></select>
+          </label>
+          <label>
+            <span>Suburb</span>
+            <input name="suburb" type="text" placeholder="e.g. Bondi" />
+          </label>
+          <label class="full">
+            <span>Message</span>
+            <textarea name="message" rows="4" placeholder="Property size, timing, anything we should know"></textarea>
+          </label>
+          <button class="btn btn-accent btn-lg full" type="submit">Request a quote</button>
+        </form>
+        <div class="quote-success" data-quote-success hidden>
+          <h3>Request received</h3>
+          <p>Thanks — we’ll be in touch shortly.</p>
+          <button class="btn btn-accent" type="button" data-close-quote>Close</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>
