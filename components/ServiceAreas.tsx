@@ -35,15 +35,19 @@ export default function ServiceAreas() {
           className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#0d0d0d] shadow-[0_24px_80px_rgba(0,0,0,0.35)]"
           data-reveal
         >
+          {/* Live Google Maps of Sydney — not an illustration */}
           <iframe
             title={`Google Map of ${city} service area`}
             src={serviceAreas.mapEmbed}
-            className="aspect-[4/3] w-full border-0 grayscale-[20%] contrast-[1.05]"
+            className="aspect-[4/3] min-h-[320px] w-full border-0 grayscale-[15%] contrast-[1.05]"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
             allowFullScreen
           />
           <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10" />
+          <p className="absolute bottom-3 left-3 rounded-full bg-black/60 px-3 py-1 text-xs text-white/80 backdrop-blur-sm">
+            {city} & surrounds · Google Maps
+          </p>
         </div>
       </div>
     </section>

@@ -1,5 +1,5 @@
 export const siteConfig = {
-  companyName: "your logo here",
+  companyName: "Your Logo Here",
   logo: "/assets/logo.svg",
   tagline: "Premium residential and commercial cleaning",
   phone: "+61 2 0000 0000",

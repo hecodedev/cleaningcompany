@@ -25,6 +25,7 @@ export default function Hero() {
 
     let hasVideo = false;
     let seeking = false;
+    let seekUnlock: number | undefined;
     let targetTime = 0;
     let displayTime = 0;
     let targetProgress = 0;
@@ -33,13 +34,14 @@ export default function Hero() {
     let blobUrl: string | null = null;
     const hero = siteConfig.hero;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
 
     if (hero.poster && fallback) {
       fallback.classList.add("has-poster");
       fallback.style.backgroundColor = "#050505";
       fallback.style.backgroundImage = `url("${hero.poster}")`;
       fallback.style.backgroundSize = "cover";
-      fallback.style.backgroundPosition = "center 78%";
+      fallback.style.backgroundPosition = "center 72%";
       fallback.style.backgroundRepeat = "no-repeat";
     }
 
@@ -55,9 +57,10 @@ export default function Hero() {
     };
 
     const applyVisuals = (progress: number, scrolled: number, total: number) => {
-      // Keep framing stable — no scale zoom (that cropped the video on export)
       media.style.transform = "none";
-      if (sheenRef.current) sheenRef.current.style.transform = `translate3d(${progress * 10}%, 0, 0)`;
+      if (sheenRef.current) {
+        sheenRef.current.style.transform = `translate3d(${progress * 8}%, 0, 0)`;
+      }
 
       const introOut = smoothstep(clamp01(scrolled / 380));
       const endIn = smoothstep(clamp01((scrolled - (total - 180)) / 180));
@@ -78,37 +81,51 @@ export default function Hero() {
       document.documentElement.classList.toggle("hero-scrolling", inHero);
     };
 
+    const unlockSeek = () => {
+      seeking = false;
+      if (seekUnlock) window.clearTimeout(seekUnlock);
+      seekUnlock = undefined;
+    };
+
+    const syncVideo = () => {
+      if (!hasVideo || !video || video.readyState < 2) return;
+      const duration = video.duration;
+      if (!Number.isFinite(duration) || duration <= 0) return;
+
+      targetTime = Math.min(displayProgress * duration * 0.985, Math.max(duration - 0.04, 0));
+      // Desktop: buttery trail. Mobile: closer to finger so swipe scrub feels live.
+      const timeEase = reduceMotion ? 1 : coarse ? 0.22 : 0.08;
+      displayTime = lerp(displayTime, targetTime, timeEase);
+
+      const delta = Math.abs(video.currentTime - displayTime);
+      const threshold = coarse ? 0.02 : 0.035;
+      if (!seeking && delta > threshold) {
+        seeking = true;
+        if (seekUnlock) window.clearTimeout(seekUnlock);
+        // Never leave seeking stuck if seeked doesn't fire (common on mobile)
+        seekUnlock = window.setTimeout(unlockSeek, coarse ? 90 : 140);
+        try {
+          video.currentTime = displayTime;
+        } catch {
+          unlockSeek();
+        }
+      }
+    };
+
     const tick = () => {
       const { scrolled, total, progress } = readProgress();
       targetProgress = progress;
 
-      // Low lerp = buttery scrub that trails the wheel instead of jumping
-      const ease = reduceMotion ? 1 : 0.038;
+      // Smooth mouse wheel / trackpad; snappier on touch so mobile scrub tracks swipe
+      const ease = reduceMotion ? 1 : coarse ? 0.28 : 0.075;
       displayProgress = lerp(displayProgress, targetProgress, ease);
       applyVisuals(displayProgress, scrolled, total);
-
-      if (hasVideo && video && video.readyState >= 2) {
-        const duration = video.duration;
-        targetTime = Math.min(displayProgress * duration * 0.985, Math.max(duration - 0.04, 0));
-        displayTime = lerp(displayTime, targetTime, reduceMotion ? 1 : 0.045);
-
-        const delta = Math.abs(video.currentTime - displayTime);
-        if (!seeking && delta > 0.035) {
-          seeking = true;
-          try {
-            video.currentTime = displayTime;
-          } catch {
-            seeking = false;
-          }
-        }
-      }
+      syncVideo();
 
       rafId = requestAnimationFrame(tick);
     };
 
-    const onSeeked = () => {
-      seeking = false;
-    };
+    const onSeeked = () => unlockSeek();
 
     const onError = () => {
       hasVideo = false;
@@ -121,8 +138,10 @@ export default function Hero() {
       hasVideo = Number.isFinite(duration) && duration > 0;
       if (!hasVideo) return;
       media.classList.add("has-video");
-      pin.style.height = `${Math.max(185, 110 + duration * 16)}vh`;
-      video.pause();
+      // Extra scroll runway on phones so a finger swipe can play the full clip
+      const vh = coarse ? 240 + duration * 22 : 120 + duration * 18;
+      pin.style.height = `${Math.max(coarse ? 260 : 190, vh)}vh`;
+      void video.play().then(() => video.pause()).catch(() => undefined);
       const { progress } = readProgress();
       targetProgress = progress;
       displayProgress = progress;
@@ -132,7 +151,11 @@ export default function Hero() {
 
     if (video && hero.video) {
       video.muted = true;
+      video.defaultMuted = true;
       video.playsInline = true;
+      video.setAttribute("playsinline", "");
+      video.setAttribute("webkit-playsinline", "");
+      video.setAttribute("muted", "");
       video.preload = "auto";
       if (hero.poster) video.poster = hero.poster;
 
@@ -146,6 +169,7 @@ export default function Hero() {
         video.load();
       };
 
+      // Blob unlocks reliable seeking on mobile Safari / Chrome
       fetch(hero.video)
         .then((res) => {
           if (!res.ok) throw new Error("hero video missing");
@@ -158,11 +182,30 @@ export default function Hero() {
         .catch(() => attach(hero.video));
     }
 
+    const bump = () => {
+      const { progress } = readProgress();
+      targetProgress = progress;
+    };
+
+    window.addEventListener("scroll", bump, { passive: true });
+    window.addEventListener("touchmove", bump, { passive: true });
+    window.addEventListener("touchstart", bump, { passive: true });
+    window.addEventListener("wheel", bump, { passive: true });
+    window.visualViewport?.addEventListener("scroll", bump, { passive: true } as AddEventListenerOptions);
+    window.addEventListener("resize", bump);
+
     rafId = requestAnimationFrame(tick);
 
     return () => {
       cancelAnimationFrame(rafId);
+      if (seekUnlock) window.clearTimeout(seekUnlock);
       document.documentElement.classList.remove("hero-scrolling");
+      window.removeEventListener("scroll", bump);
+      window.removeEventListener("touchmove", bump);
+      window.removeEventListener("touchstart", bump);
+      window.removeEventListener("wheel", bump);
+      window.visualViewport?.removeEventListener("scroll", bump);
+      window.removeEventListener("resize", bump);
       if (blobUrl) URL.revokeObjectURL(blobUrl);
       if (video) {
         video.removeEventListener("loadedmetadata", arm);
@@ -178,7 +221,13 @@ export default function Hero() {
     <section className="hero-pin" id="top" ref={pinRef}>
       <div className="hero-sticky">
         <div className="hero-media" ref={mediaRef}>
-          <video className="hero-video" ref={videoRef} muted playsInline preload="auto" />
+          <video
+            className="hero-video"
+            ref={videoRef}
+            muted
+            playsInline
+            preload="auto"
+          />
           <div className="hero-fallback" ref={fallbackRef} aria-hidden="true">
             <div className="hero-orb hero-orb-a" />
             <div className="hero-orb hero-orb-b" />
